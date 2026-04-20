@@ -4,7 +4,7 @@ from scipy import stats
 
 # ── 1. Load & Sample ─────────────────────────────────────────────
 df = pd.read_csv('sample_200.csv')
-sample = df['HR'].dropna().astype(int).reset_index(drop=True) 
+sample = df['WAR'].dropna().reset_index(drop=True) 
 
 # ── 2. Descriptive Stats ─────────────────────────────────────────
 n    = len(sample)
@@ -23,12 +23,11 @@ print(f"max    = {sample.max()}")
 # ── 3. Define Intervals ──────────────────────────────────────────
 # Adjust these bin edges to suit your data / professor's preference
 bins = [
-    (float('-inf'), 0.5,   "0"),
-    (0.5,           5.5,   "1-5"),
-    (5.5,           10.5,  "6-10"),
-    (10.5,          18.5,  "11-18"),
-    (18.5,          27.5,  "19-27"),
-    (27.5,          float('inf'), "28+"),
+    (float('-inf'), 0.0,  "< 0"),
+    (0.0,           1.0,  "0-1"),
+    (1.0,           2.0,  "1-2"),
+    (2.0,           3.5,  "2-3.5"),
+    (3.5,  float('inf'),  "3.5+"),
 ]
 
 # ── 4. Chi-Square Table ──────────────────────────────────────────
@@ -79,6 +78,6 @@ print(f"critical value     = chi2_({alpha},{df_chi}) = {critical:.4f}")
 print(f"reject H0?         = {chi2_stat > critical}  ({chi2_stat:.4f} > {critical:.4f})")
 print()
 if chi2_stat > critical:
-    print("CONCLUSION: Reject H0. HR totals do NOT follow a Normal distribution.")
+    print("CONCLUSION: Reject H0. WAR totals do NOT follow a Normal distribution.")
 else:
     print("CONCLUSION: Fail to reject H0. No evidence against Normal distribution.")
