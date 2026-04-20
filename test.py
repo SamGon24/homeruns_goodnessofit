@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy import stats
 
 # ── 1. Load & Sample ─────────────────────────────────────────────
@@ -21,7 +22,6 @@ print(f"min    = {sample.min()}")
 print(f"max    = {sample.max()}")
 
 # ── 3. Define Intervals ──────────────────────────────────────────
-# Adjust these bin edges to suit your data / professor's preference
 bins = [
     (float('-inf'), 0.0,  "< 0"),
     (0.0,           1.0,  "0-1"),
@@ -81,3 +81,54 @@ if chi2_stat > critical:
     print("CONCLUSION: Reject H0. WAR totals do NOT follow a Normal distribution.")
 else:
     print("CONCLUSION: Fail to reject H0. No evidence against Normal distribution.")
+    
+# ── 6. Plots ──────────────────────────────────────────────────────
+labels   = [r[0] for r in rows]
+observed = [r[1] for r in rows]
+expected = [r[3] for r in rows]
+chi2_per = [r[6] for r in rows]
+ 
+fig, axes = plt.subplots(1, 3, figsize=(16, 5))
+fig.suptitle('WAR Goodness-of-Fit Test (Normal Distribution)', fontsize=14, fontweight='bold')
+ 
+# -- Plot 1: Histogram with Normal curve overlay --
+ax1 = axes[0]
+ax1.hist(sample, bins=30, density=True, color='steelblue', edgecolor='white', alpha=0.7, label='Observed')
+x = np.linspace(sample.min() - 1, sample.max() + 1, 300)
+ax1.plot(x, stats.norm.pdf(x, mean, std), 'r-', linewidth=2, label=f'N({mean:.2f}, {std:.2f})')
+ax1.set_title('Sample Distribution vs Normal Curve')
+ax1.set_xlabel('WAR')
+ax1.set_ylabel('Density')
+ax1.legend()
+ 
+# -- Plot 2: Observed vs Expected bar chart --
+ax2 = axes[1]
+x_pos = np.arange(len(labels))
+width = 0.35
+ax2.bar(x_pos - width/2, observed, width, label='Observed', color='steelblue', edgecolor='white')
+ax2.bar(x_pos + width/2, expected, width, label='Expected', color='tomato', edgecolor='white', alpha=0.8)
+ax2.set_xticks(x_pos)
+ax2.set_xticklabels(labels)
+ax2.set_title('Observed vs Expected Frequencies')
+ax2.set_xlabel('WAR Interval')
+ax2.set_ylabel('Frequency')
+ax2.legend()
+ 
+# -- Plot 3: Chi-square critical region --
+ax3 = axes[2]
+x_chi = np.linspace(0, max(chi2_stat * 1.1, critical * 1.5), 300)
+ax3.plot(x_chi, stats.chi2.pdf(x_chi, df=df_chi), 'k-', linewidth=2)
+ax3.fill_between(x_chi, stats.chi2.pdf(x_chi, df=df_chi),
+                 where=(x_chi >= critical), color='tomato', alpha=0.4, label=f'Reject region (α={alpha})')
+ax3.axvline(critical, color='tomato', linestyle='--', linewidth=1.5, label=f'Critical = {critical:.4f}')
+ax3.axvline(chi2_stat, color='steelblue', linestyle='--', linewidth=1.5, label=f'χ² = {chi2_stat:.4f}')
+ax3.set_title(f'χ² Distribution (df={df_chi})')
+ax3.set_xlabel('χ²')
+ax3.set_ylabel('Density')
+ax3.legend(fontsize=8)
+ 
+plt.tight_layout()
+plt.savefig('war_goodness_of_fit.png', dpi=150, bbox_inches='tight')
+plt.show()
+print("\nPlot saved to war_goodness_of_fit.png")
+ 
